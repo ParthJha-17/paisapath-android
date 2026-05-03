@@ -1,6 +1,7 @@
 package com.paisapath.app
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.view.WindowManager
 import android.webkit.WebChromeClient
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         webView = WebView(this)
         setContentView(webView)
 
+        webView.setBackgroundColor(Color.BLACK)
         webView.webViewClient = WebViewClient()
         webView.webChromeClient = WebChromeClient()
 
@@ -35,8 +37,12 @@ class MainActivity : AppCompatActivity() {
         settings.builtInZoomControls = false
         settings.displayZoomControls = false
         settings.setSupportZoom(false)
+        settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
-        webView.loadUrl("https://paisapath.vercel.app")
+        // Always pull frontend from Vercel when available.
+        webView.clearCache(true)
+        webView.clearHistory()
+        webView.loadUrl(getString(R.string.frontend_url))
     }
 
     override fun onBackPressed() {
