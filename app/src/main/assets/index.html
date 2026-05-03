@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PaisaPath</title>
+<style>
+  :root {
+    --navy: #0D1B2A;
+    --navy2: #1E2D3D;
+    --navy3: #162230;
+    --amber: #F4A100;
+    --amber2: #FFB830;
+    --white: #FFFFFF;
+    --gray: #6B7A8D;
+    --lightbg: #F4F6F8;
+    --card: #FFFFFF;
+    --border: #DDE3EA;
+    --green: #4CAF70;
+    --red: #E05A5A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--navy); color: var(--white); overflow: hidden; height: 100vh; width: 100vw; }
+
+  /* ── SCREENS ─────────────────────────────────────────────────── */
+  .screen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; flex-direction: column; overflow: hidden; }
+  .screen.active { display: flex; }
+
+  /* ── SPLASH ──────────────────────────────────────────────────── */
+  #splash { background: var(--navy); justify-content: center; align-items: center; }
+  .splash-logo { text-align: center; }
+  .logo-pill { background: var(--amber); color: var(--navy); font-weight: 800; font-size: 13px; letter-spacing: 2px; padding: 6px 18px; border-radius: 4px; display: inline-block; margin-bottom: 20px; }
+  .splash-title { font-size: 48px; font-weight: 900; color: var(--white); line-height: 1; }
+  .splash-sub { font-size: 16px; color: var(--amber); margin-top: 8px; font-weight: 500; }
+  .splash-tagline { font-size: 14px; color: var(--gray); margin-top: 24px; font-style: italic; line-height: 1.5; }
+  .splash-btn { background: var(--amber); color: var(--navy); font-weight: 800; font-size: 16px; border: none; border-radius: 12px; padding: 16px 48px; margin-top: 48px; cursor: pointer; width: 100%; max-width: 280px; }
+  .splash-demo { font-size: 11px; color: var(--gray); margin-top: 12px; }
+
+  /* ── AUTH ────────────────────────────────────────────────────── */
+  #auth { background: var(--navy); }
+  .auth-header { background: var(--navy2); padding: 20px 20px 24px; }
+  .auth-back { font-size: 22px; color: var(--amber); cursor: pointer; margin-bottom: 16px; display: inline-block; }
+  .auth-title { font-size: 26px; font-weight: 800; }
+  .auth-sub { font-size: 14px; color: var(--gray); margin-top: 6px; }
+  .auth-body { padding: 28px 20px; }
+  .input-label { font-size: 12px; color: var(--gray); font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
+  .input-group { display: flex; align-items: center; background: var(--navy2); border: 1.5px solid #2A3F55; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+  .input-prefix { color: var(--gray); font-size: 16px; margin-right: 10px; }
+  .input-group input { background: none; border: none; outline: none; color: var(--white); font-size: 18px; font-weight: 600; flex: 1; width: 100%; }
+  .input-group input::placeholder { color: #3D5166; font-weight: 400; font-size: 16px; }
+  .btn-primary { background: var(--amber); color: var(--navy); font-weight: 800; font-size: 16px; border: none; border-radius: 12px; padding: 16px; width: 100%; cursor: pointer; margin-top: 8px; }
+  .btn-primary:active { opacity: 0.85; }
+  .otp-boxes { display: flex; gap: 10px; margin-bottom: 20px; }
+  .otp-box { flex: 1; background: var(--navy2); border: 1.5px solid #2A3F55; border-radius: 10px; height: 52px; font-size: 22px; font-weight: 700; color: var(--white); text-align: center; outline: none; }
+  .otp-box:focus { border-color: var(--amber); }
+  .demo-note { background: #1A2E1A; border: 1px solid #2E5A2E; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #6BCB77; margin-bottom: 16px; }
+
+  /* ── ONBOARDING CHAT ─────────────────────────────────────────── */
+  #onboarding { background: var(--lightbg); }
+  .chat-header { background: var(--navy); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .chat-avatar { width: 40px; height: 40px; background: var(--amber); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .chat-header-info h3 { font-size: 16px; font-weight: 700; }
+  .chat-header-info p { font-size: 12px; color: #AAC0D4; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 80%; display: flex; flex-direction: column; }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; }
+  .msg.bot .bubble { background: var(--navy); color: var(--white); border-bottom-left-radius: 4px; }
+  .msg.user .bubble { background: var(--amber); color: var(--navy); font-weight: 600; border-bottom-right-radius: 4px; }
+  .msg-time { font-size: 10px; color: var(--gray); margin-top: 4px; }
+  .msg.user .msg-time { text-align: right; }
+  .chat-input-area { background: var(--white); padding: 12px 16px; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border); }
+  .chat-input { flex: 1; border: 1.5px solid var(--border); border-radius: 24px; padding: 10px 16px; font-size: 14px; outline: none; color: #1a1a1a; background: var(--lightbg); }
+  .chat-input:focus { border-color: var(--amber); }
+  .send-btn { width: 40px; height: 40px; background: var(--amber); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .typing { display: flex; align-items: center; gap: 5px; padding: 14px 16px; }
+  .typing span { width: 8px; height: 8px; background: var(--amber); border-radius: 50%; animation: bounce 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+  /* ── RECOMMENDATION ──────────────────────────────────────────── */
+  #recommendation { background: var(--lightbg); }
+  .rec-header { background: var(--navy); padding: 20px; }
+  .rec-header h2 { font-size: 20px; font-weight: 800; }
+  .rec-header p { font-size: 13px; color: #AAC0D4; margin-top: 4px; }
+  .rec-body { flex: 1; overflow-y: auto; padding: 16px; }
+  .rec-card { background: var(--white); border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .rec-card h3 { font-size: 13px; color: var(--gray); font-weight: 600; letter-spacing: 1px; margin-bottom: 12px; }
+  .product-name { font-size: 22px; font-weight: 900; color: var(--navy); }
+  .product-type { display: inline-block; background: #FFF3CC; color: #B07800; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-top: 6px; }
+  .sip-amount { font-size: 38px; font-weight: 900; color: var(--amber); margin-top: 16px; }
+  .sip-label { font-size: 13px; color: var(--gray); margin-top: 2px; }
+  .ai-explain { background: var(--navy); border-radius: 12px; padding: 14px 16px; margin-top: 16px; }
+  .ai-explain p { font-size: 13px; color: #AAC0D4; line-height: 1.6; }
+  .ai-explain .ai-tag { font-size: 10px; color: var(--amber); font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+  .tax-card { background: var(--navy3); border-radius: 12px; padding: 16px; }
+  .tax-card h4 { font-size: 12px; color: var(--amber); font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; }
+  .tax-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #2A3F55; }
+  .tax-row:last-child { border-bottom: none; }
+  .tax-row .label { font-size: 13px; color: var(--gray); }
+  .tax-row .val { font-size: 14px; font-weight: 700; }
+  .tax-row .val.better { color: var(--green); }
+  .tax-row .val.worse { color: var(--gray); }
+  .tax-diff { background: rgba(76,175,112,0.15); border: 1px solid rgba(76,175,112,0.3); border-radius: 8px; padding: 10px 14px; margin-top: 10px; font-size: 12px; color: var(--green); text-align: center; font-weight: 600; }
+  .rec-footer { padding: 16px; background: var(--white); border-top: 1px solid var(--border); }
+
+  /* ── SIP CONFIRM ─────────────────────────────────────────────── */
+  #sip-confirm { background: var(--navy); justify-content: center; align-items: center; padding: 24px; }
+  .confirm-icon { width: 80px; height: 80px; background: rgba(244,161,0,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 24px; }
+  .confirm-title { font-size: 24px; font-weight: 900; text-align: center; }
+  .confirm-sub { font-size: 14px; color: var(--gray); text-align: center; margin-top: 8px; line-height: 1.6; }
+  .confirm-detail { background: var(--navy2); border-radius: 16px; padding: 20px; margin: 24px 0; width: 100%; }
+  .confirm-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2A3F55; }
+  .confirm-row:last-child { border-bottom: none; }
+  .confirm-row .key { font-size: 13px; color: var(--gray); }
+  .confirm-row .val { font-size: 13px; font-weight: 700; color: var(--white); }
+  .confirm-note { font-size: 11px; color: var(--gray); text-align: center; margin-top: -8px; margin-bottom: 16px; }
+
+  /* ── DASHBOARD ───────────────────────────────────────────────── */
+  #dashboard { background: var(--lightbg); }
+  .dash-header { background: var(--navy); padding: 20px; }
+  .dash-header-top { display: flex; justify-content: space-between; align-items: center; }
+  .dash-greeting { font-size: 13px; color: #AAC0D4; }
+  .dash-name { font-size: 22px; font-weight: 800; }
+  .dash-lang { background: var(--amber); color: var(--navy); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; cursor: pointer; }
+  .dash-body { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 80px; }
+  .dash-card { background: var(--white); border-radius: 16px; padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .dash-card h3 { font-size: 12px; color: var(--gray); font-weight: 600; letter-spacing: 1px; margin-bottom: 12px; }
+  .goal-title { font-size: 18px; font-weight: 800; color: var(--navy); }
+  .goal-amount { font-size: 13px; color: var(--gray); margin-top: 4px; }
+  .progress-bar-bg { background: #EEF2F7; border-radius: 100px; height: 10px; margin: 14px 0 8px; overflow: hidden; }
+  .progress-bar-fill { background: linear-gradient(90deg, var(--amber), var(--amber2)); height: 100%; border-radius: 100px; transition: width 1s ease; }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 12px; }
+  .progress-labels .done { color: var(--amber); font-weight: 700; }
+  .progress-labels .left { color: var(--gray); }
+  .streak-row { display: flex; gap: 8px; margin-top: 4px; }
+  .streak-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--lightbg); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .streak-dot.done { background: var(--amber); border-color: var(--amber); }
+  .streak-count { font-size: 28px; font-weight: 900; color: var(--amber); }
+  .streak-label { font-size: 13px; color: var(--gray); margin-top: 2px; }
+  .badge-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge { background: var(--lightbg); border-radius: 10px; padding: 10px; text-align: center; flex: 1; min-width: 70px; }
+  .badge.earned { background: #FFF3CC; border: 1px solid #F4A100; }
+  .badge-icon { font-size: 24px; }
+  .badge-name { font-size: 10px; color: var(--gray); margin-top: 4px; font-weight: 600; }
+  .badge.earned .badge-name { color: #B07800; }
+  .disc-score { font-size: 42px; font-weight: 900; color: var(--amber); }
+  .disc-label { font-size: 13px; color: var(--gray); }
+  .disc-bar-bg { background: #EEF2F7; border-radius: 100px; height: 8px; margin: 10px 0; }
+  .disc-bar-fill { background: var(--amber); height: 100%; border-radius: 100px; width: 72%; }
+  .bot-nav { position: absolute; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--border); display: flex; padding: 8px 0 12px; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px; }
+  .nav-icon { font-size: 22px; }
+  .nav-label { font-size: 10px; color: var(--gray); font-weight: 600; }
+  .nav-item.active .nav-label { color: var(--amber); }
+  .nudge-card { background: var(--navy); border-radius: 16px; padding: 16px; margin-bottom: 14px; border-left: 4px solid var(--amber); }
+  .nudge-tag { font-size: 10px; color: var(--amber); font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+  .nudge-text { font-size: 14px; color: var(--white); line-height: 1.6; }
+
+  /* ── COACH ───────────────────────────────────────────────────── */
+  #coach { background: var(--lightbg); }
+
+  /* ── UTILS ───────────────────────────────────────────────────── */
+  .hidden { display: none !important; }
+  .amber { color: var(--amber); }
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══════════════════════════════════════════════════════ -->
+<div id="splash" class="screen active">
+  <div class="splash-logo">
+    <div class="logo-pill">PAISAPATH</div>
+    <div class="splash-title">पैसा<br>Path</div>
+    <div class="splash-sub">India's AI Investment Coach</div>
+    <div class="splash-tagline">"Apna goal batao.<br>Baaki hum sambhalenge."</div>
+    <button class="splash-btn" onclick="show('auth')">Get Started →</button>
+    <div class="splash-demo">🔒 Demo Mode · No real money involved</div>
+  </div>
+</div>
+
+<!-- ══ AUTH ════════════════════════════════════════════════════════ -->
+<div id="auth" class="screen">
+  <div class="auth-header">
+    <div class="auth-back" onclick="show('splash')">←</div>
+    <div class="auth-title">Enter your mobile</div>
+    <div class="auth-sub">We'll send you a one-time password</div>
+  </div>
+  <div class="auth-body">
+    <div class="demo-note">📱 Demo Mode: Enter any mobile number, then any 6-digit OTP</div>
+    <div class="input-label">MOBILE NUMBER</div>
+    <div class="input-group">
+      <span class="input-prefix">🇮🇳 +91</span>
+      <input type="tel" id="mobile-input" maxlength="10" placeholder="98765 43210" oninput="this.value=this.value.replace(/\D/g,'')">
+    </div>
+    <button class="btn-primary" onclick="goToOTP()">Send OTP</button>
+  </div>
+
+  <!-- OTP step (hidden initially) -->
+  <div id="otp-step" class="auth-body hidden" style="padding-top:0">
+    <div class="auth-sub" style="padding-bottom:16px;color:#AAC0D4">OTP sent to +91 <span id="otp-mobile"></span></div>
+    <div class="input-label">ENTER OTP</div>
+    <div class="otp-boxes">
+      <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,0)">
+      <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,1)">
+      <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,2)">
+      <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,3)">
+      <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,4)">
+      <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,5)">
+    </div>
+    <button class="btn-primary" onclick="verifyOTP()">Verify & Continue</button>
+  </div>
+</div>
+
+<!-- ══ ONBOARDING CHAT ═════════════════════════════════════════════ -->
+<div id="onboarding" class="screen">
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <h3>PaisaPath Coach</h3>
+      <p>● Online · AI Investment Coach</p>
+    </div>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-area">
+    <input class="chat-input" id="chat-input" type="text" placeholder="Type your goal..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="send-btn" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<!-- ══ RECOMMENDATION ══════════════════════════════════════════════ -->
+<div id="recommendation" class="screen">
+  <div class="rec-header">
+    <h2>Your Recommendation</h2>
+    <p id="rec-goal-label">Based on your goal</p>
+  </div>
+  <div class="rec-body">
+    <div class="rec-card">
+      <h3>RECOMMENDED PRODUCT</h3>
+      <div class="product-name" id="rec-product">Short-Duration Debt Fund</div>
+      <div class="product-type" id="rec-type">MODERATE RISK · DEBT</div>
+      <div class="sip-amount" id="rec-sip">₹12,600<span style="font-size:18px;color:#B07800">/mo</span></div>
+      <div class="sip-label">Monthly SIP · Starting 1st June 2026</div>
+      <div class="ai-explain">
+        <div class="ai-tag">✨ AI COACH SAYS</div>
+        <p id="rec-explain">This Short-Duration Debt Fund is ideal for your 14-month timeline — it gives better returns than an FD while keeping your capital safe. At ₹12,600/month, you'll comfortably reach your goal by month 13 with a small buffer. Debt funds have very low volatility for sub-2 year goals.</p>
+      </div>
+    </div>
+    <div class="rec-card">
+      <div class="tax-card">
+        <h4>📊 FD VS THIS FUND — AFTER TAX</h4>
+        <div class="tax-row">
+          <span class="label">Bank FD (7.0%)</span>
+          <span class="val worse">~4.6% after tax</span>
+        </div>
+        <div class="tax-row">
+          <span class="label" id="tax-product-label">Debt Fund</span>
+          <span class="val better">~5.5% after tax</span>
+        </div>
+        <div class="tax-diff">+0.9% extra return per year in your hands 💰</div>
+      </div>
+    </div>
+  </div>
+  <div class="rec-footer">
+    <button class="btn-primary" style="background:var(--navy);color:var(--white)" onclick="show('sip-confirm')">Start This SIP →</button>
+  </div>
+</div>
+
+<!-- ══ SIP CONFIRM ══════════════════════════════════════════════════ -->
+<div id="sip-confirm" class="screen">
+  <div style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+    <div class="confirm-icon">🎉</div>
+    <div class="confirm-title">SIP Started!</div>
+    <div class="confirm-sub">Your investment journey begins now.<br>PaisaPath will coach you every step of the way.</div>
+    <div class="confirm-detail" id="confirm-details"></div>
+    <div class="confirm-note">⚠ This is a simulation. No real money is moved.</div>
+    <button class="btn-primary" onclick="goDashboard()">Go to Dashboard →</button>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ════════════════════════════════════════════════════ -->
+<div id="dashboard" class="screen">
+  <div class="dash-header">
+    <div class="dash-header-top">
+      <div>
+        <div class="dash-greeting">Good evening 👋</div>
+        <div class="dash-name">Ravi</div>
+      </div>
+      <div class="dash-lang" id="lang-toggle" onclick="toggleLang()">हि | EN</div>
+    </div>
+  </div>
+  <div class="dash-body" id="dash-body">
+
+    <!-- Nudge -->
+    <div class="nudge-card">
+      <div class="nudge-tag">🛡 COACH NUDGE</div>
+      <div class="nudge-text" id="nudge-text">Markets dipped 4% this week. Your goal is still on track — your SIP bought units at a lower price today. Stay invested. 💪</div>
+    </div>
+
+    <!-- Goal progress -->
+    <div class="dash-card">
+      <h3>YOUR GOAL</h3>
+      <div class="goal-title" id="dash-goal-title">School Fees</div>
+      <div class="goal-amount" id="dash-goal-amount">₹2,00,000 · 14 months</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="dash-progress" style="width:18%"></div>
+      </div>
+      <div class="progress-labels">
+        <span class="done" id="dash-invested">₹36,000 invested</span>
+        <span class="left" id="dash-remaining">₹1,64,000 to go</span>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--gray)">On track · Est. completion: <strong style="color:var(--navy)" id="dash-eta">Jul 2027</strong></div>
+    </div>
+
+    <!-- SIP streak -->
+    <div class="dash-card">
+      <h3>SIP STREAK</h3>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div>
+          <div class="streak-count">3🔥</div>
+          <div class="streak-label">months consistent</div>
+        </div>
+        <div class="streak-row">
+          <div class="streak-dot done">✓</div>
+          <div class="streak-dot done">✓</div>
+          <div class="streak-dot done">✓</div>
+          <div class="streak-dot">4</div>
+          <div class="streak-dot">5</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="dash-card">
+      <h3>BADGES EARNED</h3>
+      <div class="badge-grid">
+        <div class="badge earned"><div class="badge-icon">🚀</div><div class="badge-name">First SIP</div></div>
+        <div class="badge earned"><div class="badge-icon">🔥</div><div class="badge-name">3-Month Streak</div></div>
+        <div class="badge earned"><div class="badge-icon">🛡</div><div class="badge-name">Dip Survivor</div></div>
+        <div class="badge"><div class="badge-icon">🏆</div><div class="badge-name">25% Done</div></div>
+        <div class="badge"><div class="badge-icon">💎</div><div class="badge-name">6 Months</div></div>
+        <div class="badge"><div class="badge-icon">🎯</div><div class="badge-name">Goal Done</div></div>
+      </div>
+    </div>
+
+    <!-- Discipline score -->
+    <div class="dash-card">
+      <h3>DISCIPLINE SCORE</h3>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="disc-score">72</div>
+        <div style="flex:1">
+          <div class="disc-label">Good · Keep it up!</div>
+          <div class="disc-bar-bg"><div class="disc-bar-fill"></div></div>
+          <div style="font-size:11px;color:var(--gray)">Tip: Never skip a SIP to reach 80+</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="bot-nav">
+    <div class="nav-item active" onclick="switchTab('dash')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label" id="nav-home-label">Home</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('coach')">
+      <div class="nav-icon">🤖</div>
+      <div class="nav-label" id="nav-coach-label">Coach</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('profile')">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label" id="nav-profile-label">Profile</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COACH ════════════════════════════════════════════════════════ -->
+<div id="coach" class="screen">
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <h3>PaisaPath Coach</h3>
+      <p>Ask me anything about your investment</p>
+    </div>
+    <div style="margin-left:auto;font-size:22px;cursor:pointer;color:var(--gray)" onclick="switchTab('dash')">✕</div>
+  </div>
+  <div class="chat-messages" id="coach-messages"></div>
+  <div class="chat-input-area">
+    <input class="chat-input" id="coach-input" type="text" placeholder="Ask your coach..." onkeydown="if(event.key==='Enter')sendCoach()">
+    <button class="send-btn" onclick="sendCoach()">➤</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────────
+const S = {
+  lang: 'en',
+  name: 'Ravi',
+  goalDesc: '',
+  goalAmount: 0,
+  timelineMonths: 0,
+  product: '',
+  sip: 0,
+  chatStep: 0,
+  chatData: {}
+};
+
+// ── SCREEN NAV ───────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'onboarding' && S.chatStep === 0) initChat();
+  if (id === 'coach') initCoachChat();
+}
+
+function switchTab(tab) {
+  if (tab === 'dash') show('dashboard');
+  if (tab === 'coach') show('coach');
+  if (tab === 'profile') showProfile();
+}
+
+function showProfile() {
+  alert('Profile\n\nName: ' + S.name + '\nMobile: +91 98765 43210\nIncome Bracket: ₹5–10L\nLanguage: ' + (S.lang === 'hi' ? 'Hindi' : 'English') + '\n\n[Demo Mode]');
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────
+function goToOTP() {
+  const mob = document.getElementById('mobile-input').value;
+  if (mob.length < 10) { alert('Enter a 10-digit mobile number'); return; }
+  document.getElementById('otp-mobile').textContent = mob.slice(0,5) + 'XXXXX';
+  document.getElementById('auth').querySelector('.auth-body').classList.add('hidden');
+  document.getElementById('otp-step').classList.remove('hidden');
+  document.querySelector('.auth-title').textContent = 'Enter OTP';
+  document.querySelector('.auth-sub').textContent = 'Sent to +91 ' + mob;
+}
+
+function otpNext(el, idx) {
+  const boxes = document.querySelectorAll('.otp-box');
+  el.value = el.value.replace(/\D/,'');
+  if (el.value && idx < 5) boxes[idx+1].focus();
+  if (idx === 5 && el.value) verifyOTP();
+}
+
+function verifyOTP() {
+  const boxes = document.querySelectorAll('.otp-box');
+  const otp = Array.from(boxes).map(b => b.value).join('');
+  if (otp.length < 6) { alert('Enter all 6 digits'); return; }
+  show('onboarding');
+}
+
+// ── CHAT ONBOARDING ───────────────────────────────────────────────
+const T = {
+  en: {
+    greeting: "Namaste! 🙏 I'm PaisaPath — your personal AI investment coach.\n\nWhat are you saving for?",
+    askAmount: "Great goal! How much money do you need?",
+    askTimeline: "Got it. When do you need this money by? (e.g. 6 months, 1 year, 18 months)",
+    confirm: (g, a, t) => `Let me confirm:\n\n🎯 Goal: ${g}\n💰 Amount: ₹${a.toLocaleString('en-IN')}\n⏰ Timeline: ${t} months\n\nShall I find your best investment option?`,
+    analyzing: "Analyzing your goal… 🔍",
+    ready: "I've found your best option! Tap below to see your personalized recommendation.",
+  },
+  hi: {
+    greeting: "नमस्ते! 🙏 मैं PaisaPath हूँ — आपका personal investment coach.\n\nआप किस चीज़ के लिए save करना चाहते हैं?",
+    askAmount: "बढ़िया goal है! आपको कितने पैसे चाहिए?",
+    askTimeline: "ठीक है। यह पैसे कब तक चाहिए? (जैसे 6 महीने, 1 साल, 18 महीने)",
+    confirm: (g, a, t) => `ज़रा confirm करें:\n\n🎯 Goal: ${g}\n💰 Amount: ₹${a.toLocaleString('en-IN')}\n⏰ Timeline: ${t} महीने\n\nक्या मैं best investment option खोजूँ?`,
+    analyzing: "आपका goal analyze हो रहा है… 🔍",
+    ready: "मिल गया आपका best option! नीचे tap करें।",
+  }
+};
+
+function txt(key, ...args) {
+  const fn = T[S.lang][key];
+  return typeof fn === 'function' ? fn(...args) : fn;
+}
+
+function initChat() {
+  S.chatStep = 0;
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+  setTimeout(() => addBotMsg(txt('greeting')), 400);
+  S.chatStep = 1;
+}
+
+function addBotMsg(text, container = 'chat-messages') {
+  const c = document.getElementById(container);
+  // typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'msg bot';
+  typing.innerHTML = '<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  c.appendChild(typing);
+  c.scrollTop = c.scrollHeight;
+  setTimeout(() => {
+    typing.remove();
+    const m = document.createElement('div');
+    m.className = 'msg bot';
+    m.innerHTML = `<div class="bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${now()}</div>`;
+    c.appendChild(m);
+    c.scrollTop = c.scrollHeight;
+  }, 1000 + Math.random()*600);
+}
+
+function addUserMsg(text, container = 'chat-messages') {
+  const c = document.getElementById(container);
+  const m = document.createElement('div');
+  m.className = 'msg user';
+  m.innerHTML = `<div class="bubble">${text}</div><div class="msg-time">${now()}</div>`;
+  c.appendChild(m);
+  c.scrollTop = c.scrollHeight;
+}
+
+function now() {
+  return new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserMsg(text);
+
+  // Detect Hindi
+  if (/[ऀ-ॿ]/.test(text) && S.lang !== 'hi') {
+    S.lang = 'hi';
+    document.getElementById('lang-toggle').textContent = 'EN | हि';
+  }
+
+  setTimeout(() => processChat(text), 300);
+}
+
+function extractAmount(text) {
+  const lakh = text.match(/(\d+(?:\.\d+)?)\s*(?:lakh|lac|L|लाख)/i);
+  if (lakh) return Math.round(parseFloat(lakh[1]) * 100000);
+  const k = text.match(/(\d+(?:\.\d+)?)\s*(?:k|K|हज़ार|हजार|thousand)/i);
+  if (k) return Math.round(parseFloat(k[1]) * 1000);
+  const plain = text.match(/₹?\s*(\d{4,7})/);
+  if (plain) return parseInt(plain[1]);
+  return 0;
+}
+
+function extractMonths(text) {
+  const y = text.match(/(\d+(?:\.\d+)?)\s*(?:year|years|yr|साल|वर्ष)/i);
+  if (y) return Math.round(parseFloat(y[1]) * 12);
+  const m = text.match(/(\d+)\s*(?:month|months|mahine|mahina|महीने|महीना)/i);
+  if (m) return parseInt(m[1]);
+  const num = text.match(/\b(\d{1,2})\b/);
+  if (num && parseInt(num[1]) > 1) return parseInt(num[1]);
+  return 0;
+}
+
+function detectGoal(text) {
+  const goals = {
+    'school|fees|padhai|education|पढ़ाई|fees|स्कूल|college|tuition': 'School/College Fees',
+    'wedding|shaadi|shadi|vivah|शादी|biye': 'Wedding',
+    'bike|motorcycle|scooter|gaadi|गाड़ी|scooty': 'Bike / Scooter',
+    'car|car loan|gadi': 'Car',
+    'house|home|flat|ghar|घर|property': 'House / Property',
+    'travel|trip|vacation|holiday|tour|घूमना': 'Travel / Vacation',
+    'emergency|medical|hospital|health': 'Emergency Fund',
+    'laptop|phone|mobile': 'Electronics',
+    'business|startup|dukan|shop': 'Business',
+    'baby|child|bachcha|बच्चा': 'Child Fund',
+  };
+  for (const [pattern, label] of Object.entries(goals)) {
+    if (new RegExp(pattern, 'i').test(text)) return label;
+  }
+  return text.length > 3 ? text.slice(0,40) : 'My Goal';
+}
+
+function getProduct(months) {
+  if (months <= 12) return { name: 'Liquid Fund', type: 'LOW RISK · DEBT', explain: (s,g,t) => `A Liquid Fund is perfect for your ${t}-month goal — it gives you 6.5–7% returns with T+1 liquidity, much better than a savings account or short FD. At ₹${s.toLocaleString('en-IN')}/month, you'll reach ₹${g.toLocaleString('en-IN')} with a small safety buffer. Liquid funds are the safest investment product after FDs.` };
+  if (months <= 24) return { name: 'Short-Duration Debt Fund', type: 'MODERATE RISK · DEBT', explain: (s,g,t) => `This Short-Duration Debt Fund is ideal for your ${t}-month timeline. It returns 7–8% with minimal volatility — perfect for goals where you can't afford to lose principal. At ₹${s.toLocaleString('en-IN')}/month SIP, you'll hit ₹${g.toLocaleString('en-IN')} comfortably before month ${t}. After-tax returns beat FDs by ~1% for your income bracket.` };
+  return { name: 'Hybrid / Balanced Advantage Fund', type: 'MODERATE RISK · HYBRID', explain: (s,g,t) => `For your ${t}-month goal, a Hybrid Balanced Advantage Fund is the smart choice — it dynamically shifts between equity (when markets are cheap) and debt (when expensive), targeting 9–10% annual returns. At ₹${s.toLocaleString('en-IN')}/month, you're on track to reach ₹${g.toLocaleString('en-IN')} with meaningful upside. This is the best risk-adjusted product for 2–3 year goals.` };
+}
+
+function processChat(text) {
+  if (S.chatStep === 1) {
+    // Collect goal
+    S.chatData.goal = detectGoal(text);
+    const a = extractAmount(text);
+    const t = extractMonths(text);
+    if (a && t) {
+      S.goalAmount = a; S.timelineMonths = t; S.goalDesc = S.chatData.goal;
+      S.chatStep = 3;
+      addBotMsg(txt('confirm', S.goalDesc, S.goalAmount, S.timelineMonths));
+      S.chatStep = 4;
+      return;
+    }
+    if (a) { S.goalAmount = a; S.chatStep = 2; }
+    else S.chatStep = 1.5;
+    addBotMsg(txt('askAmount'));
+    return;
+  }
+  if (S.chatStep === 1.5) {
+    const a = extractAmount(text);
+    S.goalAmount = a || 200000;
+    S.chatStep = 2;
+    addBotMsg(txt('askTimeline'));
+    return;
+  }
+  if (S.chatStep === 2) {
+    const t = extractMonths(text);
+    S.timelineMonths = t || 12;
+    S.goalDesc = S.chatData.goal || detectGoal(S.goalDesc);
+    addBotMsg(txt('confirm', S.goalDesc, S.goalAmount, S.timelineMonths));
+    S.chatStep = 4;
+    return;
+  }
+  if (S.chatStep === 4) {
+    // Any confirmation
+    addBotMsg(txt('analyzing'));
+    setTimeout(() => {
+      addBotMsg(txt('ready'));
+      setTimeout(() => buildRecommendation(), 1800);
+    }, 1600);
+    S.chatStep = 5;
+    return;
+  }
+  // fallback
+  addBotMsg("Got it! Let me find your best investment option.");
+  setTimeout(() => buildRecommendation(), 1400);
+  S.chatStep = 5;
+}
+
+function buildRecommendation() {
+  const months = S.timelineMonths || 14;
+  const amount = S.goalAmount || 200000;
+  const p = getProduct(months);
+  const sip = Math.ceil(((amount / months) * 1.05) / 100) * 100;
+  S.product = p.name; S.sip = sip;
+
+  document.getElementById('rec-goal-label').textContent = `Goal: ${S.goalDesc} · ₹${amount.toLocaleString('en-IN')} in ${months} months`;
+  document.getElementById('rec-product').textContent = p.name;
+  document.getElementById('rec-type').textContent = p.type;
+  document.getElementById('rec-sip').innerHTML = `₹${sip.toLocaleString('en-IN')}<span style="font-size:18px;color:#B07800">/mo</span>`;
+  document.getElementById('rec-explain').textContent = p.explain(sip, amount, months);
+  document.getElementById('tax-product-label').textContent = p.name.split(' ').slice(-2).join(' ');
+
+  // Confirm details
+  const eta = new Date(); eta.setMonth(eta.getMonth() + months + 1);
+  const etaStr = eta.toLocaleString('en-IN', {month:'long', year:'numeric'});
+  document.getElementById('confirm-details').innerHTML = `
+    <div class="confirm-row"><span class="key">Product</span><span class="val">${p.name}</span></div>
+    <div class="confirm-row"><span class="key">Monthly SIP</span><span class="val amber">₹${sip.toLocaleString('en-IN')}</span></div>
+    <div class="confirm-row"><span class="key">Goal Amount</span><span class="val">₹${amount.toLocaleString('en-IN')}</span></div>
+    <div class="confirm-row"><span class="key">Start Date</span><span class="val">1st June 2026</span></div>
+    <div class="confirm-row"><span class="key">Est. Completion</span><span class="val">${etaStr}</span></div>
+  `;
+  document.getElementById('dash-goal-title').textContent = S.goalDesc;
+  document.getElementById('dash-goal-amount').textContent = `₹${amount.toLocaleString('en-IN')} · ${months} months`;
+  document.getElementById('dash-eta').textContent = etaStr;
+
+  show('recommendation');
+}
+
+function goDashboard() {
+  show('dashboard');
+  animateProgress();
+}
+
+function animateProgress() {
+  let pct = 0;
+  const bar = document.getElementById('dash-progress');
+  const inv = document.getElementById('dash-invested');
+  const rem = document.getElementById('dash-remaining');
+  const target = 18;
+  const interval = setInterval(() => {
+    pct += 1;
+    bar.style.width = pct + '%';
+    const invested = Math.round((pct/100) * S.goalAmount);
+    inv.textContent = '₹' + invested.toLocaleString('en-IN') + ' invested';
+    rem.textContent = '₹' + (S.goalAmount - invested).toLocaleString('en-IN') + ' to go';
+    if (pct >= target) clearInterval(interval);
+  }, 30);
+}
+
+// ── COACH CHAT ───────────────────────────────────────────────────
+const coachOpeners = {
+  en: "Hi! I'm your PaisaPath coach 🤖\n\nAsk me anything — market dips, SIP questions, your goal progress, or just check in. I'm here.",
+  hi: "नमस्ते! मैं आपका PaisaPath coach हूँ 🤖\n\nकुछ भी पूछें — market dip, SIP, goal progress। मैं यहाँ हूँ।"
+};
+
+const coachReplies = [
+  { pattern: /stop|band|cancel|रोक|बंद/i, reply: { en: "I understand the urge to stop — markets are scary. But here's the thing: when your SIP runs during a dip, it buys MORE units at a lower price. This is called 'rupee cost averaging' and it's actually working FOR you right now, not against you.\n\nYour goal date hasn't changed. Your monthly amount hasn't changed. The only thing that changed is temporary market sentiment — which always recovers.\n\nStay invested. You're doing the right thing. 💪", hi: "मुझे पता है रोकने का मन करता है — market scary लगता है। लेकिन सुनिए: जब SIP dip में चलती है, तो कम price पर ज़्यादा units मिलती हैं। यही 'rupee cost averaging' है — यह आपके लिए काम कर रहा है।\n\nआपका goal date नहीं बदला। Amount नहीं बदली। बस market sentiment temporarily बदला है — जो हमेशा recover होता है।\n\nInvested रहिए। आप सही कर रहे हैं। 💪" } },
+  { pattern: /loss|nuksaan|down|गिर|नुकसान|negative/i, reply: { en: "Your portfolio shows a temporary paper loss — it's not a real loss until you sell. And you're not selling.\n\nFor your goal timeline, short-term dips don't matter. What matters is: are you still investing monthly? Yes. Is your goal date the same? Yes. Then you're on track.\n\nThe best investors in the world stay boring during scary markets. Be boring. 📊", hi: "आपका portfolio अभी temporarily नीचे है — यह real loss तभी होगा जब आप बेचेंगे। और आप बेच नहीं रहे।\n\nआपके goal timeline के लिए short-term dip matter नहीं करता। Important यह है: क्या आप monthly invest कर रहे हैं? हाँ। Goal date same है? हाँ। तो आप track पर हैं।\n\nदुनिया के best investors scary market में boring रहते हैं। आप भी boring रहिए। 📊" } },
+  { pattern: /return|kitna|कितना|profit|earn|kamai|कमाई/i, reply: { en: `Your ${S.product || 'fund'} is expected to return 7–8% annually. For your goal amount, this means:\n\n• You invest: ₹${(S.sip * S.timelineMonths || 150000).toLocaleString('en-IN')}\n• Expected value: ₹${Math.round((S.goalAmount || 200000) * 1.05).toLocaleString('en-IN')}\n• Surplus buffer: ~5%\n\nNote: these are projections, not guarantees. But this fund has been consistent for 7+ years.`, hi: `आपका ${S.product || 'fund'} सालाना 7–8% return देता है। आपके goal के लिए:\n\n• आप invest करेंगे: ₹${(S.sip * S.timelineMonths || 150000).toLocaleString('en-IN')}\n• Expected value: ₹${Math.round((S.goalAmount || 200000) * 1.05).toLocaleString('en-IN')}\n• Buffer: ~5%\n\nNote: यह projection है, guarantee नहीं। लेकिन यह fund 7+ साल से consistent है।` } },
+  { pattern: /fd|fixed deposit|bank/i, reply: { en: "FDs feel safe because the number doesn't move. But after 30% tax and 6% inflation, your FD at 7% earns you about 1% real return.\n\nYour current fund earns ~5.5% after tax — that's 4.5x more real purchasing power growth. The safety of an FD is an illusion once you factor in inflation. 📈", hi: "FD safe लगता है क्योंकि number नहीं हिलता। लेकिन 30% tax और 6% inflation के बाद, 7% FD पर आपको सिर्फ ~1% real return मिलता है।\n\nआपका current fund tax के बाद ~5.5% देता है — यह 4.5 गुना ज़्यादा real return है। FD की safety inflation के सामने illusion है। 📈" } },
+  { pattern: /sip|amount|badha|increase/i, reply: { en: "Great instinct! Increasing your SIP by even 10% annually can shorten your goal timeline by 2–3 months. It's called SIP step-up.\n\nWant me to calculate what ₹1,000 extra per month does for your goal? It's more than you'd think.", hi: "अच्छी सोच! हर साल SIP को सिर्फ 10% बढ़ाने से आपका goal 2–3 महीने जल्दी पूरा हो सकता है। इसे SIP step-up कहते हैं।\n\nक्या मैं calculate करूँ कि ₹1,000 extra per month आपके goal के लिए क्या करेगा?" } },
+  { pattern: /./, reply: { en: "You're asking the right questions — that's what separates investors from savers. 💡\n\nYour SIP is running, your goal is on track, and you're engaged with your investment. That discipline is worth more than any market timing strategy.\n\nAnything specific about your goal I can help with?", hi: "आप सही सवाल पूछ रहे हैं — यही investors को savers से अलग करता है। 💡\n\nआपकी SIP चल रही है, goal track पर है, और आप engaged हैं। यह discipline किसी भी market timing strategy से ज़्यादा valuable है।\n\nकोई specific सवाल जो मैं help कर सकूँ?" } }
+];
+
+function initCoachChat() {
+  const c = document.getElementById('coach-messages');
+  if (c.children.length === 0) {
+    setTimeout(() => addBotMsg(coachOpeners[S.lang], 'coach-messages'), 400);
+  }
+}
+
+function sendCoach() {
+  const input = document.getElementById('coach-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserMsg(text, 'coach-messages');
+
+  const reply = coachReplies.find(r => r.pattern.test(text));
+  const response = reply ? reply.reply[S.lang] || reply.reply.en : coachReplies[coachReplies.length-1].reply[S.lang];
+  setTimeout(() => addBotMsg(response, 'coach-messages'), 400);
+}
+
+// ── LANGUAGE TOGGLE ──────────────────────────────────────────────
+function toggleLang() {
+  S.lang = S.lang === 'en' ? 'hi' : 'en';
+  document.getElementById('lang-toggle').textContent = S.lang === 'hi' ? 'EN | हि' : 'हि | EN';
+  const nudges = {
+    en: "Markets dipped 4% this week. Your goal is still on track — your SIP bought units at a lower price today. Stay invested. 💪",
+    hi: "इस हफ्ते market 4% गिरा। आपका goal अभी भी track पर है — आज आपकी SIP ने कम price पर units खरीदीं। Invested रहिए। 💪"
+  };
+  document.getElementById('nudge-text').textContent = nudges[S.lang];
+}
+</script>
+</body>
+</html>
