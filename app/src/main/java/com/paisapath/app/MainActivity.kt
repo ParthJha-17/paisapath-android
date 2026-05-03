@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         settings.displayZoomControls = false
         settings.setSupportZoom(false)
 
-        webView.loadUrl("file:///android_asset/index.html")
+        webView.loadUrl("https://paisapath.vercel.app")
     }
 
     override fun onBackPressed() {
